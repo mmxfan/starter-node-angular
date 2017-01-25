@@ -1,0 +1,17 @@
+{
+  "name": "starter-node-angular",
+  "main": "server.js",
+  "dependencies": {
+    "express" : "~4.5.1",
+	"mongoose" : "~3.8.23",
+	"body-parser" : "~1.4.2",
+	"method-override" : "~2.0.2"
+  },
+    "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Fan",
+  "license": "MIT"
+}
+

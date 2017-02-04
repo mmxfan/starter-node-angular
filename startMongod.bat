@@ -1,0 +1,1 @@
+D:\MongoDB\Server\3.4\bin\mongod.exe --dbpath F:\TEMP\starter-node-angular\data\db

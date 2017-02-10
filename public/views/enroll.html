@@ -1,0 +1,35 @@
+<div class="jumbotron text-center">
+	<h1>Enrollment</h1>
+	<p>{{ tagline }}</p>
+    <script type="text/javascript" src="js/recorder.js"> </script>
+    <script type="text/javascript" src="js/resampler.js"> </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <div class="input-group">
+     <span class="input-group-addon">User Name</span>
+     <input id="username" type="text" class="form-control" name="username" placeholder="Please input the user name." style="z-index:1">
+	</div>
+	<div>
+		<audio controls autoplay></audio>
+	</div>
+    <!-- <p>User name: <input type="text" name="username" id="username"></p> -->
+    <div ng-hide="timer1Visible" id="timer1div">
+	    <timer interval="1000" autostart="false">Recorder time:{{hours}} hour{{hoursS}}, {{minutes}} minute{{minutesS}}, {{seconds}} second{{secondsS}}.</timer>
+    </div>
+    <div>
+    	<button id="start" type="button" class="btn btn-primary" ng-click="startRecording()" ng-disabled = "recording">Start</button>
+    	<button id="stop" type="button" class="btn btn-primary" ng-click="stopRecording()" ng-disabled = "!recording">Stop</button>
+	</div>
+	<div>
+        <!-- <div ng-app="timer" hidden="true" id="timer1div">
+        <timer id="timer1" interval="1000" autostart="false">Recorder time:{{hours}} hour{{hoursS}}, {{minutes}} minute{{minutesS}}, {{seconds}} second{{secondsS}}.</timer>
+        </div> -->
+        <p>User name: <input type="text" name="username" id="username"></p>
+        <input id="start" onclick="startRecording()" type="button" value="start recording" />
+        <input id="stop" onclick="stopRecording()" type="button" disabled="disabled" value="stop recording and play" />
+      </div>
+<!--       <h4>Output Text from Kaldi:</h4>
+      <div style="width:400px;height:100px;border:2px solid blue;" id="kaldi-output"></div>
+      <h4>Target models in database:</h4>
+      <div style="width:400px;height:100px;border:2px solid blue;" id="target-models"></div>
+    </div> -->
+</div>

@@ -1,1 +1,2 @@
-angular.module('sampleApp', ['ngRoute', 'appRoutes', 'MainCtrl', 'NerdCtrl', 'NerdService', 'GeekCtrl', 'GeekService']);
+// angular.module('sampleApp', ['ngRoute', 'appRoutes', 'MainCtrl', 'EnrollCtrl', 'EnrollService', 'NerdCtrl', 'NerdService', 'GeekCtrl', 'GeekService']);
+angular.module('kaldiWebApp', ['ngRoute', 'appRoutes', 'MainCtrl', 'EnrollCtrl', 'EnrollService', 'GeekCtrl', 'GeekService','timer']);

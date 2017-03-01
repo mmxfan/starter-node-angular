@@ -1,7 +1,7 @@
 // Adapted from: https://github.com/mattdiamond/Recorderjs
 // With additions by Alex Popof - May 2014
 (function(window){
-  var WORKER_PATH = 'recorderWorker.js';
+  var WORKER_PATH = 'js/recorderWorker.js';
 
   var Recorder = function(source, cfg){
     var config = cfg || {};

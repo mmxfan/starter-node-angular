@@ -93,9 +93,9 @@ app.use(express.static(__dirname + '/public')); // set the static files location
 require('./app/routes')(app); // pass our application into our routes
 
 // start app ===============================================
-// app.listen(port,function(){
-// 	console.log('HTTP Server is running on: http://localhost:%s', port); 			// shoutout to the user
-// });	
+app.listen(port,function(){
+	console.log('HTTP Server is running on: http://localhost:%s', port); 			// shoutout to the user
+});	
 
 https.listen(SSLPORT, function() {
     console.log('HTTPS Server is running on: https://localhost:%s', SSLPORT);

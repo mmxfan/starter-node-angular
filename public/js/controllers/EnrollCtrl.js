@@ -13,6 +13,9 @@ angular.module('EnrollCtrl', []).controller('EnrollController', function($scope)
 	socket.on('decode', function (data) {        
         // var current = output_elem.innerHTML;
         // output_elem.innerHTML = current + data.result;
+        $scope.shOutput = data.result;
+        $scope.$apply();
+        console.log(data.result);
       });
 
 	socket.on('refreshTarget',function(data){

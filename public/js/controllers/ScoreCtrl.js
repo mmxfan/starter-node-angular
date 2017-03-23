@@ -1,32 +1,17 @@
-angular.module('EnrollCtrl', []).controller('EnrollController', function($scope) {
+angular.module('ScoreCtrl', []).controller('ScoreController', function($scope) {
 
-	// $scope.tagline = 'Nothing beats a pocket protector!';
-	$scope.username = '';
+	$scope.tagline = 'Get your score!';	
 	$scope.recording = false; //not recording
 	$scope.timer1Visible = true;
-	$scope.dataArray;
 
 	var socket = io.connect(location.host);
-	//refresh target models in database.
-    // var target_models_elem =  document.getElementById("target-models");
 
 	socket.on('decode', function (data) {        
         // var current = output_elem.innerHTML;
         // output_elem.innerHTML = current + data.result;
-        // $scope.shOutput = data.result;
-        // $scope.$apply();
+        $scope.shOutput = data.result;
+        $scope.$apply();
         console.log(data.result);
-      });
-
-	socket.on('refreshTarget',function(data){
-        // target_models_elem.innerHTML = data;
-        console.log(data);
-		//clear user name field
-		// $scope.username = '';
-		// document.getElementById("username").value = '';
-		// console.log($scope.username);
-		$scope.dataArray = data;
-		$scope.$apply();
       });
 
       var onFail = function(e) {
@@ -51,10 +36,10 @@ angular.module('EnrollCtrl', []).controller('EnrollController', function($scope)
 
 	$scope.startRecording = function() {
 		//must have a user name.
-		if ($scope.username == '') {
-			alert("Input the user name.");
-			return;
-		}
+		// if ($scope.username == '') {
+		// 	alert("Input the user name.");
+		// 	return;
+		// }
 		// recording
 		$scope.recording = true;
 		//show timer
@@ -103,8 +88,8 @@ angular.module('EnrollCtrl', []).controller('EnrollController', function($scope)
             // document.getElementById("username").value="";
             // console.log("filename is " + userFileName);
             reader.onloadend = function () {
-            console.log('wav file created...sending to server ' + $scope.username);        
-            socket.emit('wav',{'str':reader.result, 'filename':$scope.username});
+            console.log('wav file created...sending to server ' + 'test');        
+            socket.emit('test_score',{'str':reader.result, 'filename':'test'});
             }
             // send binary string to server where it will save wav locally and decode
             reader.readAsBinaryString(s);
@@ -113,5 +98,4 @@ angular.module('EnrollCtrl', []).controller('EnrollController', function($scope)
         });
 
 	};
-
 });

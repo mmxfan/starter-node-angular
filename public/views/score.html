@@ -1,0 +1,54 @@
+<div class="jumbotron text-center">
+	<h1>Test and Score</h1>
+
+	<p>{{ tagline }}</p>
+
+	<div class="container">
+		<div class="row">
+			<div class="col-md-4 col-md-offset-4">
+				<audio controls></audio>
+			</div>  
+		</div>
+
+		<div class="row">
+    		<div class="col-md-12">
+    			<br>
+    		</div>
+    	</div>
+
+		<div class="row">
+		    <div ng-hide="timer1Visible" id="timer1div" class="col-md-6 col-md-offset-3">
+			    <timer interval="1000" autostart="false">Recorder time:{{hours}} hour{{hoursS}}, {{minutes}} minute{{minutesS}}, {{seconds}} second{{secondsS}}.</timer>
+		    </div>			
+		</div>
+    	<div class="row">
+    		<div class="col-md-12">
+    			<br>
+    		</div>
+    	</div>
+
+		<div class="row">
+		    <div class="col-md-1 col-md-offset-4">
+		    	<button id="start" type="button" class="btn btn-primary" ng-click="startRecording()" ng-disabled = "recording">Start</button>
+		    	</div>
+		    <div class="col-md-1 col-md-offset-2">
+		    	<button id="stop" type="button" class="btn btn-primary" ng-click="stopRecording()" ng-disabled = "!recording">Stop</button>
+			</div>			
+		</div>
+		<div class="row">
+    		<div class="col-md-12">
+    			<br>
+    		</div>
+    	</div>
+    	
+    	<div class="row">
+    		<div class="col-md-offset-3 col-md-6">
+    			<p ng-model = "shOutput">
+    				{{shOutput}}
+    			</p>
+    		</div>
+    	</div>
+
+
+	</div>
+</div>

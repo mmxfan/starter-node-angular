@@ -18,6 +18,7 @@ io.on('connection', function(socket) {
     cnt++;
     console.log('A user connected (totally [' + cnt + '] connected)');
     refreshTargetModels();
+
     socket.on('wav', function(data) {
         console.log('server received: ' + data.filename);
         // fs.writeFile(__dirname + '/speech.wav', data.str, 'binary');
@@ -37,6 +38,27 @@ io.on('connection', function(socket) {
             console.log('child(' + child.pid + ') disconnected with code ' + code);
         });
     });
+
+    socket.on('test_score', function(data) {
+        console.log('server received: ' + data.filename);
+        // fs.writeFile(__dirname + '/speech.wav', data.str, 'binary');
+        fs.writeFile(__dirname + '/test/' + data.filename + '.wav', data.str, 'binary');
+
+        // refreshTargetModels();
+
+        var child = spawn('bash', [__dirname + '/process.sh', './test/' + data.filename + '.wav']);
+        child.stdout.on('data', function(chunk) {
+            var returnedText = 'server send to client:' + data.filename + '.wav=' + chunk.toString();
+            console.log(returnedText);
+            socket.emit("decode", {
+                'result': returnedText
+            });
+        });
+        child.on('disconnect', function(code) {
+            console.log('child(' + child.pid + ') disconnected with code ' + code);
+        });
+    });    
+
     socket.on('cc', function(data) {
         console.log('server received: ' + data.str);
         var child = spawn(__dirname + '/process.sh', [data.str]);

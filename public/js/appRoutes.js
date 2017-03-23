@@ -13,15 +13,20 @@ angular.module('appRoutes', []).config(['$routeProvider', '$locationProvider', f
 		controller: 'EnrollController'
 	})
 
+	.when('/score', {
+		templateUrl: 'views/score.html',
+		controller: 'ScoreController'
+	})
+
 	// .when('/nerds', {
 	// 	templateUrl: 'views/nerd.html',
 	// 	controller: 'NerdController'
 	// })
 
-	.when('/geeks', {
-		templateUrl: 'views/geek.html',
-		controller: 'GeekController'
-	})
+	// .when('/geeks', {
+	// 	templateUrl: 'views/geek.html',
+	// 	controller: 'GeekController'
+	// })
 
 	.otherwise({
 		redirectTo: '/'

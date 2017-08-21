@@ -2,6 +2,7 @@
 var fs = require('fs');
 var express        = require('express');
 var app            = express();
+var os = require( 'os' );
 
 var https = require('https').Server({
     key: fs.readFileSync('./server.key'),
@@ -13,6 +14,28 @@ var io = require('socket.io')(https);
 var spawn = require('child_process').spawn;
 var cnt = 0;
 
+var ifaces = os.networkInterfaces( );
+// console.log(ifaces);
+Object.keys(ifaces).forEach(function (ifname) {
+  var alias = 0;
+
+  ifaces[ifname].forEach(function (iface) {
+    if ('IPv4' !== iface.family || iface.internal !== false) {
+      // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
+      return;
+    }
+
+    if (alias >= 1) {
+      // this single interface has multiple ipv4 addresses
+      console.log(ifname + ':' + alias, iface.address);
+    } else {
+      // this interface has only one ipv4 adress
+      console.log(ifname, iface.address);
+    }
+    ++alias;
+  });
+});
+
 //Whenever someone connects this gets executed
 io.on('connection', function(socket) {
     cnt++;
@@ -20,13 +43,13 @@ io.on('connection', function(socket) {
     refreshTargetModels();
 
     socket.on('wav', function(data) {
-        console.log('server received: ' + data.filename);
+        console.log('server received: ' + data.filename  + ' gender: ' + data.gender);
         // fs.writeFile(__dirname + '/speech.wav', data.str, 'binary');
         fs.writeFile(__dirname + '/wav/' + data.filename + '.wav', data.str, 'binary');
 
         refreshTargetModels();
 
-        var child = spawn('bash', [__dirname + '/process.sh', './wav/' + data.filename + '.wav']);
+        var child = spawn('bash', [__dirname + '/process.sh', './wav/' + data.filename + '.wav', data.gender , data.filename + '.wav']);
         child.stdout.on('data', function(chunk) {
             var returnedText = 'server send to client:' + data.filename + '.wav=' + chunk.toString();
             console.log(returnedText);
@@ -41,19 +64,25 @@ io.on('connection', function(socket) {
 
     socket.on('test_score', function(data) {
         console.log('server received: ' + data.filename);
+        // console.log('server received str: ' + data.str);
         // fs.writeFile(__dirname + '/speech.wav', data.str, 'binary');
         fs.writeFile(__dirname + '/test/' + data.filename + '.wav', data.str, 'binary');
 
         // refreshTargetModels();
 
         var child = spawn('bash', [__dirname + '/process.sh', './test/' + data.filename + '.wav']);
-        child.stdout.on('data', function(chunk) {
-            var returnedText = 'server send to client:' + data.filename + '.wav=' + chunk.toString();
+        child.stdout.on('data', function(outData) {
+            var returnedText = 'server send to client:' + data.filename + '.wav=' + outData.toString();
             console.log(returnedText);
             socket.emit("decode", {
                 'result': returnedText
             });
         });
+
+        child.stderr.on('data', function (data) {
+          console.log('stderr: ' + data);
+        });
+        
         child.on('disconnect', function(code) {
             console.log('child(' + child.pid + ') disconnected with code ' + code);
         });
@@ -88,6 +117,33 @@ io.on('connection', function(socket) {
     //         io.sockets.emit('refreshTarget',files);
     //     })
     // })
+    
+    //rebuild enroll result based on wavfile.txt
+    socket.on('rebuild', function(data) {
+        console.log('rebuild');
+        var child = spawn('bash', ['rebuild.sh']);
+        child.stdout.on('data', function(chunk) {
+            var returnedText = chunk.toString();
+            console.log(returnedText);
+            socket.emit("decode", {
+                'result': returnedText
+            });
+        });
+        child.on('disconnect', function(code) {
+            console.log('child(' + child.pid + ') disconnected with code ' + code);
+        });
+        child.on('exit',function(code) {
+            console.log('exit');
+            //读取rebuild后的结果得分内容
+            fs.readFile('/lab/kaldi/egs/sre10/v3/scores/results','utf8', (err, data) => {
+              // if (err) throw err;
+              console.log(data);
+            });
+            socket.emit("rebuild", {
+                'text': "Rebuild finished!"
+            });
+        });        
+    });
 });
 
 // var mongoose       = require('mongoose');

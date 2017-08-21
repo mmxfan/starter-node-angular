@@ -14,7 +14,8 @@
     worker.postMessage({
       command: 'init',
       config: {
-        sampleRate: this.context.sampleRate
+        // sampleRate: this.context.sampleRate
+        sampleRate: config.outputSampleRate
       }
     });
     var recording = false,
@@ -66,7 +67,7 @@
       });
     }
 
-    this.exportDownsampledWAV = function(cb, resampledBuffer, type){
+    this.exportDownsampledWAV = function(cb, resampledBuffer, type, sampRate){
       currCallback = cb || config.callback;
       type = type || config.type || 'audio/wav';
       if (!currCallback) throw new Error('Callback not set');
@@ -74,7 +75,8 @@
       worker.postMessage({
         command: 'exportDownsampledWAV',
         type: type,
-        buffer: resampledBuffer
+        buffer: resampledBuffer,
+        samplerate: sampRate
       });
     }
 

@@ -18,7 +18,7 @@ this.onmessage = function(e){
       exportWAV(e.data.type);
       break;
     case 'exportDownsampledWAV':
-      exportWAVFromDownsampled(e.data.type, e.data.buffer);
+      exportWAVFromDownsampled(e.data.type, e.data.buffer, e.data.samplerate);
       break;
     case 'getBuffer':
       getBuffer();
@@ -56,9 +56,9 @@ function getBuffer() {
   this.postMessage(interleavedBuffer);
 }
 
-function exportWAVFromDownsampled(type, interleavedBuffer) {
+function exportWAVFromDownsampled(type, interleavedBuffer, sampRate) {
   monoBuffer = stereoToMono(interleavedBuffer);
-  var dataview = encodeDownsampledWAV(monoBuffer);
+  var dataview = encodeDownsampledWAV(monoBuffer, sampRate);
   var audioBlob = new Blob([dataview], { type: type });
 
   this.postMessage(audioBlob); // located in recorder.js "worker.onMessage"
@@ -168,10 +168,10 @@ function encodeWAV(samples){
 /* This method is the custom method I used to export a wav that should
 be acceptable to kaldi */
 /* Good resource on WAV format: http://mathmatrix.narod.ru/Wavefmt.html */
-function encodeDownsampledWAV(samples){
+function encodeDownsampledWAV(samples, sampRate){
   var buffer = new ArrayBuffer(44 + samples.length * 2);
   var view = new DataView(buffer);
-  sampleRate = 16000; // This is what kaldi needs; we have already downsampled
+  sampleRate = sampRate; // This is what kaldi needs; we have already downsampled
   /* RIFF identifier */
   writeString(view, 0, 'RIFF');
   /* file length */

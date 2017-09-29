@@ -6,6 +6,13 @@ angular.module('ScoreCtrl', []).controller('ScoreController', function($scope) {
 
 	var socket = io.connect(location.host);
 
+  socket.on('scoring',function(data){
+    console.log(data.text);
+    // $scope.rebuildtxt = 'rebuild';
+    // $scope.bolrebuild = false;
+    // $scope.$apply()
+  });
+
 	socket.on('decode', function (data) {        
         // var current = output_elem.innerHTML;
         // output_elem.innerHTML = current + data.result;
@@ -21,7 +28,8 @@ angular.module('ScoreCtrl', []).controller('ScoreController', function($scope) {
       var context = new AudioContext();
       var onSuccess = function(s) {
         var mediaStreamSource = context.createMediaStreamSource(s);
-        recorder = new Recorder(mediaStreamSource);
+        var config = {outputSampleRate: 8000};
+        recorder = new Recorder(mediaStreamSource,config);
         recorder.record();
         // audio loopback
         // mediaStreamSource.connect(context.destination);
@@ -72,7 +80,7 @@ angular.module('ScoreCtrl', []).controller('ScoreController', function($scope) {
             // resample input stereo to 16khz stereo
             // Resample args: inputRate, outputRate, numChannels, length of buffer, noReturn boolean
             // since we want the returned value, noReturn is set to false          
-            var resamplerObj = new Resampler(sampleRateFromMic, 16000, 2, buffer.length, false);
+            var resamplerObj = new Resampler(sampleRateFromMic, 8000, 1, buffer.length, false);
             var resampledBuffer = resamplerObj.resampler(buffer);
             // convert stereo to mono and export
             recorder.exportDownsampledWAV(function(s) {
@@ -94,7 +102,7 @@ angular.module('ScoreCtrl', []).controller('ScoreController', function($scope) {
             // send binary string to server where it will save wav locally and decode
             reader.readAsBinaryString(s);
             
-          }, resampledBuffer);
+          }, resampledBuffer, 'audio/wav', 8000);
         });
 
 	};

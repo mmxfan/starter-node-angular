@@ -68,11 +68,19 @@ io.on('connection', function(socket) {
         // fs.writeFile(__dirname + '/speech.wav', data.str, 'binary');
         fs.writeFile(__dirname + '/test/' + data.filename + '.wav', data.str, 'binary');
 
-        // refreshTargetModels();
+        // console.log("查看 /test 目录");
+        // fs.readdir("/test/",function(err, files){
+        //    if (err) {
+        //        return console.error(err);
+        //    }
+        //    files.forEach( function (file){
+        //        console.log( file );
+        //    });
+        // });
 
-        var child = spawn('bash', [__dirname + '/process.sh', './test/' + data.filename + '.wav']);
+        var child = spawn('bash', [__dirname + '/score.sh', './test/' + data.filename + '.wav']);
         child.stdout.on('data', function(outData) {
-            var returnedText = 'server send to client:' + data.filename + '.wav=' + outData.toString();
+            var returnedText = outData.toString();
             console.log(returnedText);
             socket.emit("decode", {
                 'result': returnedText
@@ -86,22 +94,23 @@ io.on('connection', function(socket) {
         child.on('disconnect', function(code) {
             console.log('child(' + child.pid + ') disconnected with code ' + code);
         });
+
+        child.on('exit',function(code) {
+            console.log('exit');
+            //读取rebuild后的结果得分内容
+            fs.readFile('/lab/kaldi/egs/sre10/v3/scores/testscorespkid','utf8', (err, data) => {
+              // if (err) throw err;
+              console.log(data);
+              socket.emit("decode", {
+                  'result': data
+              });
+            });
+            socket.emit("scoring", {
+                'text': "Scoring finished!"
+            });
+        }); 
     });    
 
-    socket.on('cc', function(data) {
-        console.log('server received: ' + data.str);
-        var child = spawn(__dirname + '/process.sh', [data.str]);
-        child.stdout.on('data', function(chunk) {
-            var returnedText = 'server send to client:' + chunk.toString();
-            //console.log(returnedText);
-            socket.emit("decode", {
-                'result': returnedText
-            });
-        });
-        child.on('disconnect', function(code) {
-            console.log('child(' + child.pid + ') disconnected with code ' + code);
-        });
-    });
     //Whenever someone disconnects this piece of code executed
     socket.on('disconnect', function() {
         cnt--;
@@ -135,7 +144,7 @@ io.on('connection', function(socket) {
         child.on('exit',function(code) {
             console.log('exit');
             //读取rebuild后的结果得分内容
-            fs.readFile('/lab/kaldi/egs/sre10/v3/scores/results','utf8', (err, data) => {
+            fs.readFile('/lab/kaldi/egs/sre10/v3/scores/testResults','utf8', (err, data) => {
               // if (err) throw err;
               console.log(data);
             });
@@ -186,7 +195,7 @@ function refreshTargetModels(){
     //and refresh the target models on web interface
     fs.readdir("./wav", function(err, files) {
         if (err) throw err;
-        console.log("files under wav folder:")
+        console.log(files.length + " files under wav folder:")
         console.log(files);
         io.sockets.emit('refreshTarget', files);
     })

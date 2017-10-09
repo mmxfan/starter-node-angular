@@ -1,8 +1,8 @@
 // modules =================================================
 var fs = require('fs');
-var express = require('express');
-var app = express();
-var os = require('os');
+var express        = require('express');
+var app            = express();
+var os = require( 'os' );
 
 var https = require('https').Server({
     key: fs.readFileSync('./server.key'),
@@ -14,55 +14,55 @@ var io = require('socket.io')(https);
 var spawn = require('child_process').spawn;
 var cnt = 0;
 
-var ifaces = os.networkInterfaces();
+var ifaces = os.networkInterfaces( );
 // console.log(ifaces);
 Object.keys(ifaces).forEach(function (ifname) {
-    var alias = 0;
+  var alias = 0;
 
-    ifaces[ifname].forEach(function (iface) {
-        if ('IPv4' !== iface.family || iface.internal !== false) {
-            // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-            return;
-        }
+  ifaces[ifname].forEach(function (iface) {
+    if ('IPv4' !== iface.family || iface.internal !== false) {
+      // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
+      return;
+    }
 
-        if (alias >= 1) {
-            // this single interface has multiple ipv4 addresses
-            console.log(ifname + ':' + alias, iface.address);
-        } else {
-            // this interface has only one ipv4 adress
-            console.log(ifname, iface.address);
-        }
-        ++alias;
-    });
+    if (alias >= 1) {
+      // this single interface has multiple ipv4 addresses
+      console.log(ifname + ':' + alias, iface.address);
+    } else {
+      // this interface has only one ipv4 adress
+      console.log(ifname, iface.address);
+    }
+    ++alias;
+  });
 });
 
 //Whenever someone connects this gets executed
-io.on('connection', function (socket) {
+io.on('connection', function(socket) {
     cnt++;
     console.log('A user connected (totally [' + cnt + '] connected)');
     refreshTargetModels();
 
-    socket.on('wav', function (data) {
-        console.log('server received: ' + data.filename + ' gender: ' + data.gender);
+    socket.on('wav', function(data) {
+        console.log('server received: ' + data.filename  + ' gender: ' + data.gender);
         // fs.writeFile(__dirname + '/speech.wav', data.str, 'binary');
         fs.writeFile(__dirname + '/wav/' + data.filename + '.wav', data.str, 'binary');
 
         refreshTargetModels();
 
-        var child = spawn('bash', [__dirname + '/process.sh', './wav/' + data.filename + '.wav', data.gender, data.filename + '.wav']);
-        child.stdout.on('data', function (chunk) {
+        var child = spawn('bash', [__dirname + '/process.sh', './wav/' + data.filename + '.wav', data.gender , data.filename + '.wav']);
+        child.stdout.on('data', function(chunk) {
             var returnedText = 'server send to client:' + data.filename + '.wav=' + chunk.toString();
             console.log(returnedText);
             socket.emit("decode", {
                 'result': returnedText
             });
         });
-        child.on('disconnect', function (code) {
+        child.on('disconnect', function(code) {
             console.log('child(' + child.pid + ') disconnected with code ' + code);
         });
     });
 
-    socket.on('test_score', function (data) {
+    socket.on('test_score', function(data) {
         console.log('server received: ' + data.filename);
         // console.log('server received str: ' + data.str);
         // fs.writeFile(__dirname + '/speech.wav', data.str, 'binary');
@@ -78,9 +78,9 @@ io.on('connection', function (socket) {
         //    });
         // });
 
-        var child = spawn('bash', [__dirname + '/score.sh', './test/' + data.filename + '.wav']);
-        child.stdout.on('data', function (outData) {
-            var returnedText = outData.toString();
+        var child = spawn('bash', [__dirname + '/process.sh', './test/' + data.filename + '.wav']);
+        child.stdout.on('data', function(outData) {
+            var returnedText = 'server send to client:' + data.filename + '.wav=' + outData.toString();
             console.log(returnedText);
             socket.emit("decode", {
                 'result': returnedText
@@ -88,31 +88,42 @@ io.on('connection', function (socket) {
         });
 
         child.stderr.on('data', function (data) {
-            console.log('stderr: ' + data);
+          console.log('stderr: ' + data);
         });
-
-        child.on('disconnect', function (code) {
+        
+        child.on('disconnect', function(code) {
             console.log('child(' + child.pid + ') disconnected with code ' + code);
         });
 
-        child.on('exit', function (code) {
+        child.on('exit',function(code) {
             console.log('exit');
             //读取rebuild后的结果得分内容
-            fs.readFile('/lab/kaldi/egs/sre10/v3/scores/testscorespkid', 'utf8', (err, data) => {
-                // if (err) throw err;
-                console.log(data);
-                socket.emit("decode", {
-                    'result': data
-                });
+            fs.readFile('/lab/kaldi/egs/sre10/v3/scores/results','utf8', (err, data) => {
+              // if (err) throw err;
+              console.log(data);
             });
             socket.emit("scoring", {
                 'text': "Scoring finished!"
             });
-        });
-    });
+        }); 
+    });    
 
+    socket.on('cc', function(data) {
+        console.log('server received: ' + data.str);
+        var child = spawn(__dirname + '/process.sh', [data.str]);
+        child.stdout.on('data', function(chunk) {
+            var returnedText = 'server send to client:' + chunk.toString();
+            //console.log(returnedText);
+            socket.emit("decode", {
+                'result': returnedText
+            });
+        });
+        child.on('disconnect', function(code) {
+            console.log('child(' + child.pid + ') disconnected with code ' + code);
+        }); 
+    });
     //Whenever someone disconnects this piece of code executed
-    socket.on('disconnect', function () {
+    socket.on('disconnect', function() {
         cnt--;
         console.log('A user disconnected (totally [' + cnt + '] connected)');
     });
@@ -126,41 +137,41 @@ io.on('connection', function (socket) {
     //         io.sockets.emit('refreshTarget',files);
     //     })
     // })
-
+    
     //rebuild enroll result based on wavfile.txt
-    socket.on('rebuild', function (data) {
+    socket.on('rebuild', function(data) {
         console.log('rebuild');
         var child = spawn('bash', ['rebuild.sh']);
-        child.stdout.on('data', function (chunk) {
+        child.stdout.on('data', function(chunk) {
             var returnedText = chunk.toString();
             console.log(returnedText);
             socket.emit("decode", {
                 'result': returnedText
             });
         });
-        child.on('disconnect', function (code) {
+        child.on('disconnect', function(code) {
             console.log('child(' + child.pid + ') disconnected with code ' + code);
         });
-        child.on('exit', function (code) {
+        child.on('exit',function(code) {
             console.log('exit');
             //读取rebuild后的结果得分内容
-            fs.readFile('/lab/kaldi/egs/sre10/v3/scores/testResults', 'utf8', (err, data) => {
-                // if (err) throw err;
-                console.log(data);
+            fs.readFile('/lab/kaldi/egs/sre10/v3/scores/results','utf8', (err, data) => {
+              // if (err) throw err;
+              console.log(data);
             });
             socket.emit("rebuild", {
                 'text': "Rebuild finished!"
             });
-        });
+        });        
     });
 });
 
 // var mongoose       = require('mongoose');
-var bodyParser = require('body-parser');
+var bodyParser     = require('body-parser');
 var methodOverride = require('method-override');
 
 // configuration ===========================================
-
+	
 // config files
 var db = require('./config/db');
 
@@ -180,20 +191,20 @@ app.use(express.static(__dirname + '/public')); // set the static files location
 require('./app/routes')(app); // pass our application into our routes
 
 // start app ===============================================
-app.listen(port, function () {
-    console.log('HTTP Server is running on: http://localhost:%s', port); 			// shoutout to the user
-});
+app.listen(port,function(){
+	console.log('HTTP Server is running on: http://localhost:%s', port); 			// shoutout to the user
+});	
 
-https.listen(SSLPORT, function () {
+https.listen(SSLPORT, function() {
     console.log('HTTPS Server is running on: https://localhost:%s', SSLPORT);
 });
 
 exports = module.exports = app; 						// expose app
 
-function refreshTargetModels() {
+function refreshTargetModels(){
     //list all the files under foler "./wav" after new wav file saved
     //and refresh the target models on web interface
-    fs.readdir("./wav", function (err, files) {
+    fs.readdir("./wav", function(err, files) {
         if (err) throw err;
         console.log(files.length + " files under wav folder:")
         console.log(files);
